@@ -10,6 +10,63 @@
 
 module.exports = function(robot) {
 
+  var messageSend = false;
+
+  setInterval( function() {
+    var date = new Date();
+    if (!messageSend && date.getDay() !== 0 && date.getDay() !== 6 && date.getHours() === 10) {
+      robot.messageRoom("@audrey", {
+        "text": "Comment s'est passé cette journée ?",
+        "attachments": [
+          {
+            "text": "",
+            "callback_id": "nikoniko",
+            "color": "#3AA3E3",
+            "attachment_type": "default",
+            "actions": [
+              {
+                "name":"excellent",
+                "text": ":smile: Excellente journée",
+                "type": "button",
+                "style": "primary",
+                "value": "4"
+              },
+              {
+                "name":"good",
+                "text": ":slightly_smiling_face: Bonne journée",
+                "type": "button",
+                "value": "3"
+              },
+              {
+                "name":"indifferent",
+                "text": ":neutral_face: Bof, journée moyenne",
+                "type": "button",
+                "value": "2"
+              },
+              {
+                "name":"difficult",
+                "text": ":slightly_frowning_face: Journée difficile",
+                "type": "button",
+                "value": "1"
+              },
+              {
+                "name":"bad",
+                "text": ":triumph: Mauvaise journée",
+                "type": "button",
+                "value": "0",
+                "style":"danger"
+              }
+            ]
+          }
+        ]
+      });
+
+      robot.on('slack:msg_action:nikoniko', function(data, res) { console.log('tata') });
+
+      messageSend = true;
+    }
+  }, 1000)
+
   robot.respond(/test/i, function(res) {
     response = robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/NikoNiko")
         .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
@@ -31,5 +88,4 @@ module.exports = function(robot) {
     })
 
   });
-
-};
+}
