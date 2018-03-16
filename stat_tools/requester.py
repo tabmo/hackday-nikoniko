@@ -11,3 +11,5 @@ class Requester:
     def get_records(self):
         resp = requests.get(self.request_url, headers=self.headers)         
         return(resp.json())
+
+

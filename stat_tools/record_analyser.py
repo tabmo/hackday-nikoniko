@@ -41,8 +41,8 @@ class RecordAnalyser:
             trend.append(means[d])
         rho, p = scipy.stats.spearmanr(range(0, len(trend)), trend)
         if rho < 0:
-            print("bad vibes :( with confidence "+ str(1 - p))
+            print(str(rho) + "bad vibes :( with confidence "+ str(1 - p))
         else: 
-            print("OK, good vibes! with confidence "+str(1 - p))
+            print(str(rho) + "OK, good vibes! with confidence "+str(1 - p))
 
 
