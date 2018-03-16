@@ -1,0 +1,45 @@
+{
+  "text": "Comment s'est passé cette journée ?",
+  "attachments": [
+    {
+      "text": "",
+      "callback_id": "nikoniko",
+      "color": "#3AA3E3",
+      "attachment_type": "default",
+      "actions": [
+        {
+          "name": "excellent",
+          "text": ":smile: Excellente journée",
+          "type": "button",
+          "style": "primary",
+          "value": "5"
+        },
+        {
+          "name": "good",
+          "text": ":slightly_smiling_face: Bonne journée",
+          "type": "button",
+          "value": "4"
+        },
+        {
+          "name": "indifferent",
+          "text": ":neutral_face: Bof, journée moyenne",
+          "type": "button",
+          "value": "3"
+        },
+        {
+          "name": "difficult",
+          "text": ":slightly_frowning_face: Journée difficile",
+          "type": "button",
+          "value": "2"
+        },
+        {
+          "name": "bad",
+          "text": ":triumph: Mauvaise journée",
+          "type": "button",
+          "value": "1",
+          "style": "danger"
+        }
+      ]
+    }
+  ]
+}
