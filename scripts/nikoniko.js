@@ -7,61 +7,36 @@
  #   niko inscription - ajoute l'identifiant room dans la table inscription
  */
 
+var moodQuestionFile = require('./moodMessageQuestion.json')
+
 module.exports = function(robot) {
 
   var messageSend = false;
 
   setInterval( function() {
     var date = new Date();
-    if (!messageSend && date.getDay() !== 0 && date.getDay() !== 6 && date.getHours() === 10) {
-      robot.messageRoom("@audrey", {
-        "text": "Comment s'est passé cette journée ?",
-        "attachments": [
-          {
-            "text": "",
-            "callback_id": "nikoniko",
-            "color": "#3AA3E3",
-            "attachment_type": "default",
-            "actions": [
-              {
-                "name":"excellent",
-                "text": ":smile: Excellente journée",
-                "type": "button",
-                "style": "primary",
-                "value": "4"
-              },
-              {
-                "name":"good",
-                "text": ":slightly_smiling_face: Bonne journée",
-                "type": "button",
-                "value": "3"
-              },
-              {
-                "name":"indifferent",
-                "text": ":neutral_face: Bof, journée moyenne",
-                "type": "button",
-                "value": "2"
-              },
-              {
-                "name":"difficult",
-                "text": ":slightly_frowning_face: Journée difficile",
-                "type": "button",
-                "value": "1"
-              },
-              {
-                "name":"bad",
-                "text": ":triumph: Mauvaise journée",
-                "type": "button",
-                "value": "0",
-                "style":"danger"
-              }
-            ]
-          }
-        ]
-      });
+    if (!messageSend && date.getDay() !== 0 && date.getDay() !== 6 && date.getHours() === 14) {
 
-      robot.on('slack:msg_action:nikoniko', function(data, res) { console.log('tata') });
+      robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements?maxRecords=100")
+        .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
+        .header('Accept', 'application/json')
+        .get()(function(err, response, body) {
+          console.log('body', body)
+          // var records = JSON.parse(body).records
+          // var subscribers = records.map(function(s) {
+          //   return s.fields.Handle
+          // })
 
+          // subscribers.forEach(function(roomId) {
+          //   if (roomId.startsWith('D')) { // id of a direct message
+          //     robot.messageRoom(roomId, moodQuestionFile)
+            // }
+          // })
+
+            // TODO TEMP send to Audrey
+            robot.messageRoom('D9N8SA3U6', moodQuestionFile)
+
+        })
       messageSend = true;
     }
   }, 1000)
