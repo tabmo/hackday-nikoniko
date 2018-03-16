@@ -12,31 +12,31 @@
           "text": ":smile: Excellente journée",
           "type": "button",
           "style": "primary",
-          "value": "4"
+          "value": "5"
         },
         {
           "name": "good",
           "text": ":slightly_smiling_face: Bonne journée",
           "type": "button",
-          "value": "3"
+          "value": "4"
         },
         {
           "name": "indifferent",
           "text": ":neutral_face: Bof, journée moyenne",
           "type": "button",
-          "value": "2"
+          "value": "3"
         },
         {
           "name": "difficult",
           "text": ":slightly_frowning_face: Journée difficile",
           "type": "button",
-          "value": "1"
+          "value": "2"
         },
         {
           "name": "bad",
           "text": ":triumph: Mauvaise journée",
           "type": "button",
-          "value": "0",
+          "value": "1",
           "style": "danger"
         }
       ]
