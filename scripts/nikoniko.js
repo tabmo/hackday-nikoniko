@@ -13,30 +13,34 @@ module.exports = function(robot) {
 
   var messageSend = false;
 
+  var getAllSubscribtions = function(callback) {
+    robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements?maxRecords=100")
+      .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
+      .header('Accept', 'application/json')
+      .get()(callback)
+  }
+
+  var parseSubscribers = function(body) {
+    var records = JSON.parse(body).records
+    return records.map(function(s) {
+      return s.fields.Handle
+    })
+  }
+
   setInterval( function() {
     var date = new Date();
-    if (!messageSend && date.getDay() !== 0 && date.getDay() !== 6 && date.getHours() === 14) {
+    if (!messageSend && date.getDay() !== 0 && date.getDay() !== 6 && date.getHours() === 15) {
 
-      robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements?maxRecords=100")
-        .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
-        .header('Accept', 'application/json')
-        .get()(function(err, response, body) {
-          console.log('body', body)
-          // var records = JSON.parse(body).records
-          // var subscribers = records.map(function(s) {
-          //   return s.fields.Handle
-          // })
+      getAllSubscribtions(function(err, response, body) {
+        var subscribers = parseSubscribers(body)
 
-          // subscribers.forEach(function(roomId) {
-          //   if (roomId.startsWith('D')) { // id of a direct message
-          //     robot.messageRoom(roomId, moodQuestionFile)
-            // }
-          // })
-
-            // TODO TEMP send to Audrey
-            robot.messageRoom('D9N8SA3U6', moodQuestionFile)
-
+        subscribers.forEach(function(roomId) {
+          if (roomId.startsWith('D')) { // id of a direct message
+            robot.messageRoom(roomId, moodQuestionFile)
+          }
         })
+
+      })
       messageSend = true;
     }
   }, 1000)
@@ -64,28 +68,20 @@ module.exports = function(robot) {
   });
 
   robot.respond(/inscription/i, function(res) {
-    response = robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements")
-    .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
-    .header('Accept', 'application/json')
-    .get()
+    getAllSubscribtions(function(err, response, body) {
+      var subscribers = parseSubscribers(body)
+      var roomId = res.message.user.room
 
-    response(function(err, response, body) {
-      subscribers = JSON.parse(body).records
-      var t = subscribers.map(function(s) {
-        return s.fields.Handle
-      })
-
-    if(!t.includes(res.message.user.room)){
-      room = JSON.stringify({ fields : { "Handle": res.message.user.room} })
-      response = robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements")
+      if(!subscribers.includes(roomId)) {
+        var data = JSON.stringify({ fields : { 'Handle': roomId } })
+        robot.http('https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements')
           .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
           .header('Content-Type', 'application/json')
-          .post(room)
-
-    } else {
-      res.reply("Tu es déjà inscrit :wink: !")
-    }
-  })
+          .post(data)
+      } else {
+        res.reply("Tu es déjà inscrit :wink: !")
+      }
+    })
 
   });
 }
