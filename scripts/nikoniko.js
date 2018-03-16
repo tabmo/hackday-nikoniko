@@ -4,8 +4,7 @@
  #
  # Commands:
  #   niko test - affiche Bonjour !
- #   hubot
- #   hubot
+ #   niko inscription - ajoute l'identifiant room dans la table inscription
  */
 
 module.exports = function(robot) {
@@ -86,6 +85,32 @@ module.exports = function(robot) {
         + total + "%20Membres&icwt=false"
       res.reply(chartUrl)
     })
+
+  });
+
+  robot.respond(/inscription/i, function(res) {
+    response = robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements")
+    .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
+    .header('Accept', 'application/json')
+    .get()
+
+    response(function(err, response, body) {
+      subscribers = JSON.parse(body).records
+      var t = subscribers.map(function(s) {
+        return s.fields.Handle
+      })
+
+    if(!t.includes(res.message.user.room)){
+      room = JSON.stringify({ fields : { "Handle": res.message.user.room} })
+      response = robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements")
+          .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
+          .header('Content-Type', 'application/json')
+          .post(room)
+
+    } else {
+      res.reply("Tu es déjà inscrit :wink: !")
+    }
+  })
 
   });
 }
