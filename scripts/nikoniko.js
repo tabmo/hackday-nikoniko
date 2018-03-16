@@ -20,6 +20,7 @@ module.exports = function(robot) {
 
     response(function(err, response, body) {
       records = JSON.parse(body).records[0]
+      console.log(JSON.parse(body))
       total = records.fields["1"] + records.fields["2"] + records.fields["3"] + records.fields["4"] + records.fields["5"]
       chartUrl = "https://image-charts.com/chart?cht=pd&chd=t%3A"
         + records.fields["1"] +"%2C"
