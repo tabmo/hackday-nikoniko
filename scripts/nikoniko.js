@@ -89,7 +89,7 @@ module.exports = function(robot) {
 
   robot.respond(/Ajoute l'event (.*)/i, function(conv) {
     var newEvent = conv.match[1]
-    var data = JSON.stringify({ fields : { 'Name': newEvent } })
+    var data = JSON.stringify({ fields : { 'Event': newEvent } })
     utilHttp.addEvent(data, function() {
       conv.reply("Event ajouté !")
     })
@@ -99,7 +99,7 @@ module.exports = function(robot) {
     utilHttp.getAllEvents(function(err, response, body) {
       var records = JSON.parse(body).records
       var list = records.map(function(s) {
-        return s.fields.Name
+        return s.fields.Event
       })
       conv.reply(list + " Pour ajouter un nouvel évènement à la liste : Ajoute l'event `newEvent`")
     })
@@ -113,5 +113,25 @@ module.exports = function(robot) {
       })
     })
   })
+
+
+robot.respond(/Aujourd'hui c'est (.*)/i, function(conv) {
+  var eventName = conv.match[1]
+  console.log(eventName)
+  var eventId
+  utilHttp.getEventBySearch(eventName, function(err, response, body){
+    eventId = JSON.parse(body).records[0].id
+    date = new Date()
+    today = date.getFullYear() + "-0" + (date.getMonth() + 1) + "-0" + date.getDate()
+    utilHttp.getMoodLineForDate(today, function(err, response, body){
+      var event = JSON.parse(body).records[0].fields.event
+      var id = JSON.parse(body).records[0].id
+      var data = JSON.stringify({ fields : { 'Event': [eventId] }})
+      utilHttp.patchMoodLine(data, id, function(err, response, body) {
+          conv.reply(data)
+      })
+    })
+  })
+})
 
 }

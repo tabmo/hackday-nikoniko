@@ -18,6 +18,13 @@ CustomHttpService.prototype.post = function(url, data, callback) {
     .post(data)(callback)
 }
 
+CustomHttpService.prototype.patch = function(url, data, callback) {
+  return this.robot.http(url)
+    .header('Authorization', this.authKey)
+    .header('Content-Type', this.contentType)
+    .patch(data)(callback)
+}
+
 CustomHttpService.prototype.delete = function(url, callback) {
   return this.robot.http(url)
     .header('Authorization', this.authKey)

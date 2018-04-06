@@ -36,6 +36,15 @@ UtilsHttp.prototype.getAllEvents = function(callback) {
   this.customHttpService.get(this.eventsTableUrl, callback)
 }
 
+UtilsHttp.prototype.getEventBySearch= function(eventName, callback) {
+  console.log("hello");
+  this.customHttpService.get(this.eventsTableUrl +"?filterByFormula=SEARCH('" +  eventName+ "',event)", callback)
+}
+
+UtilsHttp.prototype.patchMoodLine = function(data, id, callback ){
+  this.customHttpService.patch(this.eventsTableUrl + '/' + id, data, callback)
+}
+
 
 /**********************
  *        Stats       *
