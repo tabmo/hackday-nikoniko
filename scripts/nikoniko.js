@@ -118,6 +118,30 @@ module.exports = function(robot) {
   });
 
 
+  robot.respond(/Ajoute l'event (.*)/i, function(conv) {
+      var newEvent = conv.match[1]
+      var data = JSON.stringify({ fields : { 'Name': newEvent } })
+      robot.http('https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Event%20list')
+        .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
+        .header('Content-Type', 'application/json')
+        .post(data)(function(err,response, body){
+          conv.reply("Event ajouté !")
+      })
+  })
+
+  robot.respond(/Liste moi les events/i, function(conv) {
+      robot.http('https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Event%20list')
+      .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
+      .header('Accept', 'application/json')
+      .get()(function(err, response, body) {
+        var records = JSON.parse(body).records
+        var list = records.map(function(s) {
+          return s.fields.Name
+        })
+        conv.reply(list + " Pour ajouter un nouvel évènement à la liste : Ajouter l'event `newEvent`")
+      })
+  })
+
 
   var sortDates = function(dates) {
     return dates.sort(function(a,b){
