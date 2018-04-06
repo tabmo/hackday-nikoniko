@@ -10,40 +10,22 @@
  */
 
 var moodQuestionFile = require('./moodMessageQuestion.json')
-const Spearman = require('spearman-rho')
+var UtilsHttp = require('./utilsHttp')
+var SubscribersService = require('./subscribersService')
+var StatsUtils = require('./statsUtils')
 
 module.exports = function(robot) {
 
-
   var messageSend = false;
-
-  var getAllSubscribtions = function(callback) {
-    robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements?maxRecords=100")
-      .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
-      .header('Accept', 'application/json')
-      .get()(callback)
-  }
-
-  var parseSubscribers = function(body) {
-    var records = JSON.parse(body).records
-    return records.map(function(s) {
-      return s.fields.Handle
-    })
-  }
-
-  var getSubscriberByRoomId = function(body, roomId) {
-    var records = JSON.parse(body).records
-    return records.find(function(s) {
-      return s.fields.Handle === roomId
-    })
-  }
+  var utilHttp = new UtilsHttp(robot)
+  var statsUtils = new StatsUtils()
 
   setInterval( function() {
     var date = new Date();
-    if (!messageSend && date.getDay() !== 0 && date.getDay() !== 6 && date.getHours() === 16) {
+    if (!messageSend && date.getDay() !== 0 && date.getDay() !== 6 && date.getHours() === 12) {
 
-      getAllSubscribtions(function(err, response, body) {
-        var subscribers = parseSubscribers(body)
+      utilHttp.getAllSubscribtions(function(err, response, body) {
+        var subscribers = SubscribersService.parseSubscribers(body)
         subscribers.forEach(function(roomId) {
           if (roomId.startsWith('D')) { // id of a direct message
             robot.messageRoom(roomId, moodQuestionFile)
@@ -58,12 +40,7 @@ module.exports = function(robot) {
   robot.respond(/day/i, function(res) {
     date = new Date()
     today = date.getFullYear() + "-0" + (date.getMonth() + 1) + "-0" + date.getDate()
-    response = robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/NikoNiko?filterByFormula=IS_SAME({Date},'" + today + "')")
-        .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
-        .header('Accept', 'application/json')
-        .get()
-
-    response(function(err, response, body) {
+    utilHttp.getMoodLineForDate(today, function(err, response, body) {
       records = JSON.parse(body).records[0]
       total = records.fields["1"] + records.fields["2"] + records.fields["3"] + records.fields["4"] + records.fields["5"]
       chartUrl = "https://image-charts.com/chart?cht=pd&chd=t%3A"
@@ -75,21 +52,19 @@ module.exports = function(robot) {
         + total + "%20Membres&icwt=false"
       res.reply(chartUrl)
     })
+
   });
 
   robot.respond(/inscrit moi/i, function(conv) {
-    getAllSubscribtions(function(err, response, body) {
-      var subscribers = parseSubscribers(body)
+    utilHttp.getAllSubscribtions(function(err, response, body) {
+      var subscribers = SubscribersService.parseSubscribers(body)
       var roomId = conv.message.user.room
 
       if(!subscribers.includes(roomId)) {
         var data = JSON.stringify({ fields : { 'Handle': roomId } })
-        robot.http('https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements')
-          .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
-          .header('Content-Type', 'application/json')
-          .post(data)(function(err,response, body){
-            conv.reply("Inscription :white_check_mark: ! Rendez-vous chaque jour à 16h00 !")
-          })
+        utilHttp.addAbonnement(data, function() {
+          conv.reply("Inscription :white_check_mark: ! Rendez-vous chaque jour à 16h00 !")
+        })
       } else {
         conv.reply("Tu es déjà inscrit :wink: !")
       }
@@ -97,121 +72,46 @@ module.exports = function(robot) {
   });
 
   robot.respond(/désinscrit moi/i, function(conv) {
-    getAllSubscribtions(function(err, response, body) {
-      var subscribers = parseSubscribers(body)
+    utilHttp.getAllSubscribtions(function(err, response, body) {
+      var subscribers = SubscribersService.parseSubscribers(body)
       var roomId = conv.message.user.room
-      var suscriber = getSubscriberByRoomId(body,roomId);
-      console.log(suscriber.id, "susb")
+      var subscriber = SubscribersService.getSubscriberByRoomId(body,roomId)
 
       if(subscribers.includes(roomId)) {
-        var data = JSON.stringify({ fields : { 'Handle': roomId } })
-        robot.http('https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Abonnements/' + suscriber.id)
-          .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
-          .header('Content-Type', 'application/json')
-          .delete()(function(err,response, body){
-            conv.reply("Je ne t'embêterai plus ...  c'est promis ! Si tu changes d'avis, écris moi simplement `inscrit moi` !")
-          })
+        utilHttp.removeAbonnement(subscriber.id, function(){
+          conv.reply("Je ne t'embêterai plus ...  c'est promis ! Si tu changes d'avis, écris moi simplement `inscrit moi` !")
+        })
       } else {
         conv.reply("Tu n'est pas inscrit !")
       }
     })
-  });
-
+  })
 
   robot.respond(/Ajoute l'event (.*)/i, function(conv) {
-      var newEvent = conv.match[1]
-      var data = JSON.stringify({ fields : { 'Name': newEvent } })
-      robot.http('https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Event%20list')
-        .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
-        .header('Content-Type', 'application/json')
-        .post(data)(function(err,response, body){
-          conv.reply("Event ajouté !")
-      })
+    var newEvent = conv.match[1]
+    var data = JSON.stringify({ fields : { 'Name': newEvent } })
+    utilHttp.addEvent(data, function() {
+      conv.reply("Event ajouté !")
+    })
   })
 
   robot.respond(/Liste moi les events/i, function(conv) {
-      robot.http('https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Event%20list')
-      .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
-      .header('Accept', 'application/json')
-      .get()(function(err, response, body) {
-        var records = JSON.parse(body).records
-        var list = records.map(function(s) {
-          return s.fields.Name
-        })
-        conv.reply(list + " Pour ajouter un nouvel évènement à la liste : Ajouter l'event `newEvent`")
+    utilHttp.getAllEvents(function(err, response, body) {
+      var records = JSON.parse(body).records
+      var list = records.map(function(s) {
+        return s.fields.Name
       })
+      conv.reply(list + " Pour ajouter un nouvel évènement à la liste : Ajoute l'event `newEvent`")
+    })
   })
 
-
-  var sortDates = function(dates) {
-    return dates.sort(function(a,b){
-      return new Date(a) - new Date(b)
-    })
-  }
-
-  var getDates = function(records) {
-    var unsortedDates = records.map(function(r) {
-      return r.fields.Date
-    })
-    return sortDates(unsortedDates)
-  }
-
-  var getMeans = function(records) {
-    var moodTable = ["1", "2", "3", "4", "5"]
-    var means = {}
-    records.forEach((function(rec) {
-      var sum_rec = 0
-      var nrec = 0
-      moodTable.forEach(function(moodValue) {
-        nrec += rec.fields[moodValue]
-        sum_rec += parseFloat(moodValue) * rec.fields[moodValue]
-      })
-      means[rec.fields.Date] = sum_rec / parseFloat(nrec)
-    }))
-    return means
-  }
-
-  function range(start, end) {
-    var foo = [];
-    for (var i = start; i <= end; i++) {
-      foo.push(i);
-    }
-    return foo;
-  }
-
-  var trends = function(records) {
-    var means = getMeans(records)
-    var trend = []
-    var dates = getDates(records)
-
-    dates.forEach(function(date) {
-      trend.push(means[date])
-    })
-
-    const spearman = new Spearman(range(0, trend.length - 1), trend)
-
-    return spearman.calc()
-      .then(function(rho) {
-        if (rho < 0) {
-          return 'Bad vibes :disapointed:'
-        } else {
-          return 'OK, good vibes!  :tada:'
-        }
-
-      }).catch(function(err) {console.error(err)})
-  }
-
   robot.respond(/trends/i, function(res) {
-
-    robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/NikoNiko?maxRecords=100&filterByFormula=AND(OR(IS_AFTER({Date},'2018-03-01'),IS_SAME({Date},'2018-03-11')),IS_BEFORE({Date},'2018-03-18'))")
-      .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
-      .header('Accept', 'application/json')
-      .get()(function(err, response, body) {
-        var records = JSON.parse(body).records
-        trends(records).then(function(r) {
-          res.reply(r)
-        })
+    utilHttp.getTrendsStats(function(err, response, body) {
+      var records = JSON.parse(body).records
+      statsUtils.trends(records).then(function(r) {
+        res.reply(r)
       })
+    })
   })
 
 }
