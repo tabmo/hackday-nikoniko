@@ -14,7 +14,26 @@ var UtilsHttp = require('./utilsHttp')
 var SubscribersService = require('./subscribersService')
 var StatsUtils = require('./statsUtils')
 
+const path = require('path');
+const fs = require('fs');
+var mime = require('mime');
+
+const serveFile = filePath => (req, res) => {
+  const fullPath = path.join(__dirname, filePath);
+  fs.readFile(fullPath, {encoding: 'utf-8'}, function(err, data){
+    if (!err) {
+      res.writeHead(200, {'Content-Type': mime.lookup(fullPath)});
+      res.write(data);
+      res.end();
+    } else {
+      console.log(err);
+    }
+  });
+};
+
 module.exports = function(robot) {
+
+robot.router.get('/', serveFile('../index.html'));
 
   var messageSend = false;
   var utilHttp = new UtilsHttp(robot)
