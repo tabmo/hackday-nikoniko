@@ -117,14 +117,14 @@ module.exports = function(robot) {
 }
 robot.respond(/Aujourd'hui c'est (.*)/i, function(conv) {
   var eventName = conv.match[1]
-  var eventId;
-  response = robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Event%20list?filterByFormula=IS_SAME({Name},'" + eventName + "')")
+  var eventId;  response = robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/Event%20list?filterByFormula=SEARCH('" +  eventName+ "',event)")
   .header('Authorization', 'Bearer keyNUv3Laq95pQOU7')
   .header('Accept', 'application/json')
   .get()(function(err, response, body){
     eventId = JSON.parse(body).records[0].id
-    console.log(JSON.parse(body).records)
+    console.log('eventId: ', eventId);
   })
+
   date = new Date()
   today = date.getFullYear() + "-0" + (date.getMonth() + 1) + "-0" + date.getDate()
   response = robot.http("https://api.airtable.com/v0/appDrZAT5gWrRGi6X/NikoNiko?filterByFormula=IS_SAME({Date},'" + today + "')")
