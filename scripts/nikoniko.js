@@ -82,7 +82,7 @@ module.exports = function(robot) {
           conv.reply("Je ne t'embêterai plus ...  c'est promis ! Si tu changes d'avis, écris moi simplement `inscrit moi` !")
         })
       } else {
-        conv.reply("Tu n'est pas inscrit !")
+        conv.reply("Tu n'es pas inscrit !")
       }
     })
   })
@@ -91,7 +91,7 @@ module.exports = function(robot) {
     var newEvent = conv.match[1]
     var data = JSON.stringify({ fields : { 'Event': newEvent } })
     utilHttp.addEvent(data, function() {
-      conv.reply("Event ajouté !")
+      conv.reply("Event ajouté à la liste! Si l'évènement a lieu aujourd'hui écrire: `Aujourd'hui c'est " + newEvent +"`")
     })
   })
 
@@ -101,7 +101,7 @@ module.exports = function(robot) {
       var list = records.map(function(s) {
         return s.fields.Event
       })
-      conv.reply(list + " Pour ajouter un nouvel évènement à la liste : Ajoute l'event `newEvent`")
+      conv.reply(list + " Pour ajouter un nouvel évènement à la liste `Ajoute l'event myEvent`, pour définir l'évènement du jour `Aujourd'hui c'est myEvent`")
     })
   })
 
@@ -117,18 +117,21 @@ module.exports = function(robot) {
 
 robot.respond(/Aujourd'hui c'est (.*)/i, function(conv) {
   var eventName = conv.match[1]
-  console.log(eventName)
   var eventId
   utilHttp.getEventBySearch(eventName, function(err, response, body){
     eventId = JSON.parse(body).records[0].id
     date = new Date()
     today = date.getFullYear() + "-0" + (date.getMonth() + 1) + "-0" + date.getDate()
     utilHttp.getMoodLineForDate(today, function(err, response, body){
-      var event = JSON.parse(body).records[0].fields.event
-      var id = JSON.parse(body).records[0].id
-      var data = JSON.stringify({ fields : { 'Event': [eventId] }})
-      utilHttp.patchMoodLine(data, id, function(err, response, body) {
-          conv.reply(data)
+      var dayId = JSON.parse(body).records[0].id
+      var eventsOfDay = JSON.parse(body).records[0].fields.Event
+      if(!eventsOfDay){
+        eventsOfDay= [];
+      }
+      eventsOfDay.push(eventId)
+      var data = JSON.stringify({ fields: { 'Event': eventsOfDay } })
+      utilHttp.patchMoodLine(data, dayId, function(err, response, body) {
+          conv.reply(eventName +" enregistré pour aujourd'hui ! ")
       })
     })
   })
