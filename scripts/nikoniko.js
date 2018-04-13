@@ -121,9 +121,10 @@ module.exports = function (robot) {
     utilHttp.getAllEvents(function (err, response, body) {
       var records = JSON.parse(body).records
       var list = records.map(function (s) {
-        return s.fields.Event
+        return `\n${s.fields.Event}`
       })
-      conv.reply(list + " Pour ajouter un nouvel évènement à la liste `Ajoute l'event myEvent`, pour définir l'évènement du jour `Aujourd'hui c'est myEvent`")
+      console.log('list: ', list);
+      conv.reply(list + "\n Pour ajouter un nouvel évènement à la liste `Ajoute l'event myEvent`, pour définir l'évènement du jour `Aujourd'hui c'est myEvent`")
     })
   })
 
