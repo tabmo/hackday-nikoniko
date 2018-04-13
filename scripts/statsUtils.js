@@ -75,6 +75,7 @@ StatsUtils.prototype.trends = function(records) {
   })
 
   var spearman = new Spearman(this.range(0, trend.length - 1), trend)
+  console.log('spearman', spearman)
 
   var chartUri = "https://image-charts.com/chart?chs=999x300&chco=FE9A2E,AF3C3C,AF3C3C&cht=lc&chg=20,50&chf=bg,s,E6E6E6&chxt=x,y&chls=2|1,6,3|1,6,3|&chd=t:"
   chartUri = appendUri(spearman.Y, chartUri, ',')
@@ -95,9 +96,9 @@ StatsUtils.prototype.trends = function(records) {
   return spearman.calc()
     .then(function(rho) {
       if (rho < 0) {
-        return 'Bad vibes :disapointed:' + chartUri
+        return 'Bad vibes :disapointed: ' + chartUri
       } else {
-        return 'OK, good vibes!  :tada:' + chartUri
+        return 'OK, good vibes! :tada: ' + chartUri
       }
 
     }).catch(function(err) {console.error(err)})

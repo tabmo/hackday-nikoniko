@@ -61,12 +61,9 @@ UtilsHttp.prototype.getMoodLineForEvent = function(eventName, callback) {
   this.customHttpService.get(this.nikoNikoTableUrl + "?filterByFormula=SEARCH('" +  eventName+ "',event)", callback)
 }
 
-// TODO prendre en compte une date dynamique
 UtilsHttp.prototype.getTrendsStats = function(date, callback) {
   this.customHttpService.get(
-    this.nikoNikoTableUrl + "?maxRecords=100&" +
-      "filterByFormula=AND(OR(IS_AFTER({Date},'" + date +
-      "'),IS_SAME({Date},'" + date + "')),IS_BEFORE({Date},'"+ date + "'))",
+    this.nikoNikoTableUrl + "?maxRecords=100&filterByFormula=IS_AFTER({Date},'"+ date + "')",
     callback)
 }
 
