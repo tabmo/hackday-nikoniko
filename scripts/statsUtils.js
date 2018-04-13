@@ -38,6 +38,33 @@ StatsUtils.prototype.range = function(start, end) {
   return foo;
 }
 
+sum = function(array) {
+  var num = 0;
+  for (var i = 0, l = array.length; i < l; i++) num += array[i];
+  return num;
+}
+
+mean = function(array) {
+  return sum(array) / array.length;
+}
+
+variance = function(array) {
+  var m = mean(array);
+  return mean(array.map(function(num) {
+    return Math.pow(num - m, 2);
+  }));
+}
+
+appendUri = function(array, uri, delimiter) {
+  for (var i = 0; i < array.length; i++) {
+    uri += array[i]
+    if (i < array.length - 1) {
+      uri += delimiter
+    }
+  }
+  return uri
+}
+
 StatsUtils.prototype.trends = function(records) {
   var means = this.getMeans(records)
   var trend = []
@@ -49,12 +76,28 @@ StatsUtils.prototype.trends = function(records) {
 
   var spearman = new Spearman(this.range(0, trend.length - 1), trend)
 
+  var chartUri = "https://image-charts.com/chart?chs=999x300&chco=FE9A2E,AF3C3C,AF3C3C&cht=lc&chg=20,50&chf=bg,s,E6E6E6&chxt=x,y&chls=2|1,6,3|1,6,3|&chd=t:"
+  chartUri = appendUri(spearman.Y, chartUri, ',')
+  var ecarttype = Math.sqrt(variance(spearman.Y))
+
+  var confidenceIntervalMinus = []
+  var confidenceIntervalPlus = []
+
+  spearman.Y.forEach(function(y) {
+    confidenceIntervalMinus.push(y - ecarttype)
+    confidenceIntervalPlus.push(y + ecarttype)
+  })
+
+  chartUri = appendUri(confidenceIntervalMinus, chartUri + "|", ',')
+  chartUri = appendUri(confidenceIntervalPlus, chartUri + "|", ',')
+  chartUri = appendUri(dates, chartUri + '&chxl=0:|', '|')
+
   return spearman.calc()
     .then(function(rho) {
       if (rho < 0) {
-        return 'Bad vibes :disapointed:'
+        return 'Bad vibes :disapointed:' + chartUri
       } else {
-        return 'OK, good vibes!  :tada:'
+        return 'OK, good vibes!  :tada:' + chartUri
       }
 
     }).catch(function(err) {console.error(err)})
