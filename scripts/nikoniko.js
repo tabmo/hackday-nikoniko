@@ -1,14 +1,16 @@
-/**
- * Description:
- *    TODO
- #
- # Commands:
- #   niko test - affiche Bonjour !
- #   inscrit moi - Pour recevoir la question quotidienne `Comment s'est passé cette journée ?`
- #   désinscrit moi - Pour ne plus recevoir la question quotidienne `Comment s'est passé cette journée ?`
- #   trends - Affiche la tendance de l'humeur
- */
+// Description:
+//   Generates help commands for Hubot.
+//
+// Commands:
+//   hubot day - Pour afficher un cammembert représentant le bien être du jour de l'équipe 
+//   hubot trends - Pour afficher la tendance du bien être de l'équipe 
+//   hubot inscrit moi - Pour s'abonner et recevoir à la question quotidienne 
+//   hubot désinscrit moi - Pour ne plus recevoir la question quotidienne
+//   hubot Liste moi les events - Pour afficher les évènements créés 
+//   hubot Aujourd'hui c'est <yourEvent> - Pour associer l'évènement <yourEvent> à aujourd'hui
+//   hubot Ajoute l'event - Pour créer un nouvel évènement qui pourra être associé à une journée
 
+  
 var moodQuestionFile = require('./moodMessageQuestion.json')
 var UtilsHttp = require('./utilsHttp')
 var SubscribersService = require('./subscribersService')
