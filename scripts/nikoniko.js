@@ -189,5 +189,3 @@ module.exports = function (robot) {
     })
   })
 }
-
-}
