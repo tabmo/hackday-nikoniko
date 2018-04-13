@@ -188,4 +188,44 @@ module.exports = function (robot) {
       })
     })
   })
+
+
+robot.respond(/Mood for (.*)/i, function (res) {
+  var eventName = res.match[1].toLowerCase()
+  utilHttp.getEventBySearch(eventName,function (err, response, body) {
+    try {
+      event = JSON.parse(body).records[0]
+      if (event.fields.NikoNiko) {
+        utilHttp.getMoodLineForEvent(eventName, function (err, response, body){
+          text = encodeURIComponent(`Humeur de l'event ${event.fields.Event}`)
+          records = JSON.parse(body).records
+          var one = two = three = four = five = 0;
+          records.forEach(r => {
+            one += r.fields["1"]
+            two += r.fields["2"]
+            three += r.fields["3"]
+            four += r.fields["4"]
+            five += r.fields["5"]
+          })
+          total = one + two + three + four + five
+          chartUrl = "https://image-charts.com/chart?cht=pd&chd=t%3A"
+            + one/records.length + "%2C"
+            + two/records.length + "%2C"
+            + three/records.length + "%2C"
+            + four/records.length + "%2C"
+            + five/records.length + `&chof=.png&chs=800x300&chdl=Pas%20bien%7CBof%7CMoyen%7CBien%7CTr%C3%A8s%20bien&chdls=000000&chco=929292%2CFFB632%2CF5E872%2CE8E8E8%2CFF9300&chtt=${text}&chdlp=b&chf=bg%2Cs%2CFFFFFF&chbh=10&chli=`
+            + total + "%20Votes&icwt=false"
+          res.reply(chartUrl)
+            })
+      } else {
+        res.reply('Pas de réponse pour cet évenement')
+      }
+    }
+    catch (err){
+      res.reply("Cet évenement n'existe pas !")
+    }
+  })
+})
+
 }
+
