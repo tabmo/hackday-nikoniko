@@ -95,9 +95,9 @@ StatsUtils.prototype.trends = function(records) {
   return spearman.calc()
     .then(function(rho) {
       if (rho < 0) {
-        return 'Bad vibes :disapointed: ' + chartUri
+        return 'Bad vibes :disapointed: \n' + chartUri
       } else {
-        return 'OK, good vibes! :tada: ' + chartUri
+        return 'OK, good vibes! :tada: \n' + chartUri
       }
 
     }).catch(function(err) {console.error(err)})
