@@ -9,6 +9,7 @@
 //   hubot Liste les events - Pour afficher les évènements créés
 //   hubot Aujourd'hui c'est <yourEvent> - Pour associer l'évènement <yourEvent> à aujourd'hui
 //   hubot Ajoute l'event - Pour créer un nouvel évènement qui pourra être associé à une journée
+//   hubot Mood for <event> - pour afficher un camenbert représentant la moyenne de bien être pour l'évenement donné
 
 
 var moodQuestionFile = require('./moodMessageQuestion.json')
