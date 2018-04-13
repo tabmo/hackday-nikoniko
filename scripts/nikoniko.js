@@ -126,11 +126,20 @@ module.exports = function (robot) {
     })
   })
 
-  robot.respond(/trends/i, function (res) {
-    utilHttp.getTrendsStats(function (err, response, body) {
+  robot.respond(/trends\b(.*)/i, function (conv) {
+    var nbDaysForTrends = conv.match[1] || 7
+
+    if (isNaN(nbDaysForTrends)) {
+      return conv.reply("Vous devez saisir un chiffre après la commande `trends` (ou ne rien mettre - par défaut le calcul se fait sur 7j). (voir help)")
+    }
+
+    var date = new Date()
+    date.setDate(date.getDate() - nbDaysForTrends)
+
+    utilHttp.getTrendsStats(dateUtils.formatDate(date), function (err, response, body) {
       var records = JSON.parse(body).records
       statsUtils.trends(records).then(function (r) {
-        res.reply(r)
+        conv.reply(r)
       })
     })
   })

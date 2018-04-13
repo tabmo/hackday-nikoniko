@@ -38,7 +38,8 @@ UtilsHttp.prototype.getAllEvents = function(callback) {
 
 UtilsHttp.prototype.getEventBySearch= function(eventName, callback) {
   console.log("hello");
-  this.customHttpService.get(this.eventsTableUrl +"?filterByFormula=SEARCH('" +  eventName+ "',event)", callback)
+
+  this.customHttpService.get(this.eventsTableUrl +"?filterByFormula=SEARCH('" +  eventName + "',event)", callback)
 }
 
 UtilsHttp.prototype.patchMoodLine = function(data, id, callback ){
@@ -55,10 +56,11 @@ UtilsHttp.prototype.getMoodLineForDate = function(date, callback) {
 }
 
 // TODO prendre en compte une date dynamique
-UtilsHttp.prototype.getTrendsStats = function(callback) {
+UtilsHttp.prototype.getTrendsStats = function(date, callback) {
   this.customHttpService.get(
     this.nikoNikoTableUrl + "?maxRecords=100&" +
-    "filterByFormula=AND(OR(IS_AFTER({Date},'2018-03-01'),IS_SAME({Date},'2018-03-11')),IS_BEFORE({Date},'2018-03-18'))",
+      "filterByFormula=AND(OR(IS_AFTER({Date},'" + date +
+      "'),IS_SAME({Date},'" + date + "')),IS_BEFORE({Date},'"+ date + "'))",
     callback)
 }
 
