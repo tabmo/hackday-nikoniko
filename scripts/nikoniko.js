@@ -2,11 +2,11 @@
 //   Generates help commands for Hubot.
 //
 // Commands:
-//   hubot day - Pour afficher un cammembert représentant le bien être du jour de l'équipe
-//   hubot trends - Pour afficher la tendance du bien être de l'équipe
-//   hubot inscrit moi - Pour s'abonner et recevoir à la question quotidienne
-//   hubot désinscrit moi - Pour ne plus recevoir la question quotidienne
-//   hubot Liste moi les events - Pour afficher les évènements créés
+//   hubot Humeur du jour - Pour afficher un camembert représentant le bien être du jour de l'équipe
+//   hubot Tendance <nbJours> - afficher la tendance du bien être de l'équipe (par défaut calculé sur les 7 derniers jours, sinon fait par rapport à <nbJours>)
+//   hubot inscris moi - Pour s'abonner et recevoir la question quotidienne
+//   hubot désinscris moi - Pour ne plus recevoir la question quotidienne
+//   hubot Liste les events - Pour afficher les évènements créés
 //   hubot Aujourd'hui c'est <yourEvent> - Pour associer l'évènement <yourEvent> à aujourd'hui
 //   hubot Ajoute l'event - Pour créer un nouvel évènement qui pourra être associé à une journée
 
@@ -59,7 +59,7 @@ module.exports = function (robot) {
     }
   }, 1000)
 
-  robot.respond(/day/i, function (res) {
+  robot.respond(/Humeur du jour/i, function (res) {
     today = dateUtils.formatNow()
     utilHttp.getMoodLineForDate(today, function (err, response, body) {
       records = JSON.parse(body).records[0]
@@ -76,7 +76,7 @@ module.exports = function (robot) {
 
   });
 
-  robot.respond(/inscrit moi/i, function (conv) {
+  robot.respond(/inscris moi/i, function (conv) {
     utilHttp.getAllSubscribtions(function (err, response, body) {
       var subscribers = SubscribersService.parseSubscribers(body)
       var roomId = conv.message.user.room
@@ -92,7 +92,7 @@ module.exports = function (robot) {
     })
   });
 
-  robot.respond(/désinscrit moi/i, function (conv) {
+  robot.respond(/désinscris moi/i, function (conv) {
     utilHttp.getAllSubscribtions(function (err, response, body) {
       var subscribers = SubscribersService.parseSubscribers(body)
       var roomId = conv.message.user.room
@@ -100,7 +100,7 @@ module.exports = function (robot) {
 
       if (subscribers.includes(roomId)) {
         utilHttp.removeAbonnement(subscriber.id, function () {
-          conv.reply("Je ne t'embêterai plus ...  c'est promis ! Si tu changes d'avis, écris moi simplement `inscrit moi` !")
+          conv.reply("Je ne t'embêterai plus ...  c'est promis ! Si tu changes d'avis, écris moi simplement `inscris moi` !")
         })
       } else {
         conv.reply("Tu n'es pas inscrit !")
@@ -112,11 +112,11 @@ module.exports = function (robot) {
     var newEvent = conv.match[1].toLowerCase()
     var data = JSON.stringify({ fields: { 'Event': newEvent } })
     utilHttp.addEvent(data, function () {
-      conv.reply("Event ajouté à la liste! Si l'évènement a lieu aujourd'hui écrire: `Aujourd'hui c'est " + newEvent + "`")
+      conv.reply("Event ajouté à la liste ! Si l'évènement a lieu aujourd'hui tapez: `Aujourd'hui c'est " + newEvent + "`")
     })
   })
 
-  robot.respond(/Liste moi les events/i, function (conv) {
+  robot.respond(/Liste les events/i, function (conv) {
     utilHttp.getAllEvents(function (err, response, body) {
       var records = JSON.parse(body).records
       var list = records.map(function (s) {
@@ -126,11 +126,11 @@ module.exports = function (robot) {
     })
   })
 
-  robot.respond(/trends\b(.*)/i, function (conv) {
+  robot.respond(/Tendance\b(.*)/i, function (conv) {
     var nbDaysForTrends = conv.match[1] || 7
 
     if (isNaN(nbDaysForTrends)) {
-      return conv.reply("Vous devez saisir un chiffre après la commande `trends` (ou ne rien mettre - par défaut le calcul se fait sur 7j). (voir help)")
+      return conv.reply("Vous devez saisir un chiffre après la commande `Tendance` (ou ne rien mettre - par défaut le calcul se fait sur 7j). (voir help)")
     }
 
     var date = new Date()
@@ -150,7 +150,7 @@ module.exports = function (robot) {
     utilHttp.getEventBySearch(eventName, function (err, response, body) {
       var eventRecord = JSON.parse(body).records[0]
       if (eventRecord === undefined) {
-        return conv.reply("L'event : \"" + eventName + "\" n'existe pas, pour ajouter un nouvel évènement à la liste demandez : `Ajoute l'event myEvent`, utilisez `Liste moi les events` pour lister les events existant")
+        return conv.reply("L'event : \"" + eventName + "\" n'existe pas, pour ajouter un nouvel event à la liste demandez : `Ajoute l'event myEvent`, utilisez `Liste les events` pour lister les events existants")
       }
       var eventId = eventRecord.id
       var today = dateUtils.formatNow()
@@ -180,7 +180,7 @@ module.exports = function (robot) {
             eventsOfDay = [];
           }
           eventsOfDay.push(eventId)
-          var data = JSON.stringify({fields: {'Event': eventsOfDay}})
+          var data = JSON.stringify({ fields: { 'Event': eventsOfDay } })
           utilHttp.patchMoodLine(data, dayId, function () {
             conv.reply(eventName + " enregistré pour aujourd'hui ! ")
           })
