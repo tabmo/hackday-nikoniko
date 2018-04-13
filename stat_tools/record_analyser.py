@@ -22,6 +22,16 @@ class RecordAnalyser:
             means[rec['fields']['Date']] = sum_rec/float(nrec) 
         return(means)
 
+    def get_event_presence(self, event_id):
+        presence = {}
+        for rec in self.records:
+            presence[rec['fields']['Date']] = 0
+            if 'Event' in rec['fields']:
+                if event_id in rec['fields']['Event']:
+                    presence[rec['fields']['Date']] = 1
+        return(presence)
+
+
     def get_vars(self):
         rec_vars = {}
         rec_means = self.get_means() 
