@@ -2,15 +2,15 @@
 //   Generates help commands for Hubot.
 //
 // Commands:
-//   hubot day - Pour afficher un cammembert représentant le bien être du jour de l'équipe 
-//   hubot trends - Pour afficher la tendance du bien être de l'équipe 
-//   hubot inscrit moi - Pour s'abonner et recevoir à la question quotidienne 
+//   hubot day - Pour afficher un cammembert représentant le bien être du jour de l'équipe
+//   hubot trends - Pour afficher la tendance du bien être de l'équipe
+//   hubot inscrit moi - Pour s'abonner et recevoir à la question quotidienne
 //   hubot désinscrit moi - Pour ne plus recevoir la question quotidienne
-//   hubot Liste moi les events - Pour afficher les évènements créés 
+//   hubot Liste moi les events - Pour afficher les évènements créés
 //   hubot Aujourd'hui c'est <yourEvent> - Pour associer l'évènement <yourEvent> à aujourd'hui
 //   hubot Ajoute l'event - Pour créer un nouvel évènement qui pourra être associé à une journée
 
-  
+
 var moodQuestionFile = require('./moodMessageQuestion.json')
 var UtilsHttp = require('./utilsHttp')
 var SubscribersService = require('./subscribersService')
@@ -109,7 +109,7 @@ module.exports = function (robot) {
   })
 
   robot.respond(/Ajoute l'event (.*)/i, function (conv) {
-    var newEvent = conv.match[1]
+    var newEvent = conv.match[1].toLowerCase()
     var data = JSON.stringify({ fields: { 'Event': newEvent } })
     utilHttp.addEvent(data, function () {
       conv.reply("Event ajouté à la liste! Si l'évènement a lieu aujourd'hui écrire: `Aujourd'hui c'est " + newEvent + "`")
@@ -146,22 +146,45 @@ module.exports = function (robot) {
 
 
   robot.respond(/Aujourd'hui c'est (.*)/i, function (conv) {
-    var eventName = conv.match[1]
-    var eventId
+    var eventName = conv.match[1].toLowerCase()
     utilHttp.getEventBySearch(eventName, function (err, response, body) {
-      eventId = JSON.parse(body).records[0].id
-      today = dateUtils.formatNow()
+      var eventRecord = JSON.parse(body).records[0]
+      if (eventRecord === undefined) {
+        return conv.reply("L'event : \"" + eventName + "\" n'existe pas, pour ajouter un nouvel évènement à la liste demandez : `Ajoute l'event myEvent`, utilisez `Liste moi les events` pour lister les events existant")
+      }
+      var eventId = eventRecord.id
+      var today = dateUtils.formatNow()
       utilHttp.getMoodLineForDate(today, function (err, response, body) {
-        var dayId = JSON.parse(body).records[0].id
-        var eventsOfDay = JSON.parse(body).records[0].fields.Event
-        if (!eventsOfDay) {
-          eventsOfDay = [];
+        var firstRecord = JSON.parse(body).records[0]
+        if (firstRecord === undefined) {
+          utilHttp.setNewMoodLine(JSON.stringify({
+            fields: {
+              'Date': today,
+              '1': 0,
+              '2': 0,
+              '3': 0,
+              '4': 0,
+              '5': 0
+            }
+          }), function (err, response, body) {
+            var dayId = JSON.parse(body).id
+            var data = JSON.stringify({ fields: { 'Event': [eventId] } })
+            utilHttp.patchMoodLine(data, dayId, function () {
+              conv.reply(eventName + " enregistré pour aujourd'hui ! ")
+            })
+          })
+        } else {
+          var dayId = firstRecord.id
+          var eventsOfDay = JSON.parse(body).records[0].fields.Event
+          if (!eventsOfDay) {
+            eventsOfDay = [];
+          }
+          eventsOfDay.push(eventId)
+          var data = JSON.stringify({fields: {'Event': eventsOfDay}})
+          utilHttp.patchMoodLine(data, dayId, function () {
+            conv.reply(eventName + " enregistré pour aujourd'hui ! ")
+          })
         }
-        eventsOfDay.push(eventId)
-        var data = JSON.stringify({ fields: { 'Event': eventsOfDay } })
-        utilHttp.patchMoodLine(data, dayId, function (err, response, body) {
-          conv.reply(eventName + " enregistré pour aujourd'hui ! ")
-        })
       })
     })
   })
