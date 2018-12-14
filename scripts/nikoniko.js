@@ -45,7 +45,7 @@ module.exports = function (robot) {
 
   setInterval(function () {
     var date = new Date();
-    if (!messageSend && date.getDay() !== 0 && date.getDay() !== 6 && date.getHours() === 14) {
+    if (!messageSend && date.getDay() !== 0 && date.getDay() !== 6 && date.getHours() === 16) {
 
       utilHttp.getAllSubscribtions(function (err, response, body) {
         var subscribers = SubscribersService.parseSubscribers(body)
